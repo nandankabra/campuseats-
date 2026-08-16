@@ -16,7 +16,7 @@
 
 |                                                                            | Name              | Roll Number | GitHub                                               | Role   | Service   |
 |:--------------------------------------------------------------------------:|:------------------|:-----------:|:-----------------------------------------------------|:------:|:----------|
-| <img src="https://github.com/PRIYA-GITHUB.png" width="40" height="40" />   | **Priya**         | 20251651073 | [@PRIYA-GITHUB](https://github.com/PRIYA-GITHUB)     | Leader | User      |
+| <img src="https://github.com/PRIYA-GITHUB.png" width="40" height="40" />   | **Priya**         | 20251651073 | [@PRIYA-GITHUB](https://github.com/priyamadaan9878-svg)     | Leader | User      |
 | <img src="https://github.com/NANDAN-GITHUB.png" width="40" height="40" />  | **Nandan Kabra**  | 20251651060 | [@NANDAN-GITHUB](https://github.com/NANDAN-GITHUB)   | Member | Catalogue |
 | <img src="https://github.com/NEERAJ-GITHUB.png" width="40" height="40" />  | **Neeraj Sharma** | 20251651063 | [@NEERAJ-GITHUB](https://github.com/NEERAJ-GITHUB)   | Member | Order     |
 | <img src="https://github.com/ABHINAV-GITHUB.png" width="40" height="40" /> | **Abhinav Gupta** | 20251651002 | [@ABHINAV-GITHUB](https://github.com/ABHINAV-GITHUB) | Member | Payment   |
