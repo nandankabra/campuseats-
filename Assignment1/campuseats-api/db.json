@@ -1,0 +1,34 @@
+{
+    "students": [
+        {
+            "id": 1,
+            "name": "Nandan Kabra",
+            "course": "MCA"
+        },
+        {
+            "id": 2,
+            "name": "Abhinav Gupta",
+            "course": "MCA"
+        },
+        {
+            "id": 3,
+            "name": "Priya",
+            "course": "MCA"
+        },
+        {
+            "id": 4,
+            "name": "Neeraj",
+            "course": "MCA"
+        }
+    ],
+    "restaurants": [
+        {
+            "id": 1,
+            "name": "Campus Cafe"
+        },
+        {
+            "id": 2,
+            "name": "Food Corner"
+        }
+    ]
+}

@@ -14,12 +14,19 @@
 
 ## Team Members
 
-| Name | Roll Number | Role | Service Owned |
-| :--- | :--- | :--- | :--- |
-| **Priya** | 20251651073 | Leader | User Service |
-| **Nandan Kabra** | 20251651060 | Member | Catalogue Service |
-| **Neeraj Sharma** | 20251651063 | Member | Order Service |
-| **Abhinav Gupta** | 20251651002 | Member | Payment Service |
+<!--
+  TO ADD A GITHUB USERNAME: replace the placeholder in BOTH the image src and the link
+  on that row — e.g. swap every `PRIYA-GITHUB` for `priya123`.
+  The avatar is pulled live from https://github.com/<username>.png, so it stays current
+  by itself whenever that person changes their profile picture.
+-->
+
+| | Name | Roll Number | GitHub | Role | Service Owned |
+| :---: | :--- | :--- | :--- | :--- | :--- |
+| <img src="https://github.com/PRIYA-GITHUB.png" width="40" height="40" /> | **Priya** | 20251651073 | [@PRIYA-GITHUB](https://github.com/PRIYA-GITHUB) | Leader | User Service |
+| <img src="https://github.com/NANDAN-GITHUB.png" width="40" height="40" /> | **Nandan Kabra** | 20251651060 | [@NANDAN-GITHUB](https://github.com/NANDAN-GITHUB) | Member | Catalogue Service |
+| <img src="https://github.com/NEERAJ-GITHUB.png" width="40" height="40" /> | **Neeraj Sharma** | 20251651063 | [@NEERAJ-GITHUB](https://github.com/NEERAJ-GITHUB) | Member | Order Service |
+| <img src="https://github.com/ABHINAV-GITHUB.png" width="40" height="40" /> | **Abhinav Gupta** | 20251651002 | [@ABHINAV-GITHUB](https://github.com/ABHINAV-GITHUB) | Member | Payment Service |
 
 > ⚠️ The Assignment 2 service map and schema also define a **Delivery Service**, which has no
 > owner, contract, or validation entry yet — see the consistency note in
@@ -106,10 +113,32 @@ lab/
 
 ---
 
+## Contributors
+
+<!--
+  This block updates ITSELF — no editing required. Once a collaborator accepts their
+  invitation and pushes at least one commit, their avatar appears here automatically.
+-->
+
+<a href="https://github.com/nandankabra/campuseats-/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=nandankabra/campuseats-" alt="Contributors" />
+</a>
+
+### Adding a collaborator
+
+1. On GitHub, open the repository → **Settings** → **Collaborators** → **Add people**
+2. Enter their GitHub username or the email on their GitHub account
+3. They accept the invitation from their email or from https://github.com/notifications
+4. After their first commit they appear in the contributors graph above, and in
+   **Insights → Contributors**
+
+Add their username to the [Team Members](#team-members) table at the same time — that table
+is written by hand and does not fill itself in.
+
+---
+
 <div align="center">
 
 Indian Institute of Information Technology, Vadodara · Semester 3
 
 </div>
-# campuseats-
-# campuseats-
