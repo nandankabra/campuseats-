@@ -8,21 +8,7 @@
 
 ---
 
-## About
 
-**CampusEats** is an online food-ordering platform for a college campus. Students browse
-menus from campus cafeterias and nearby restaurants, place orders, pay, and track delivery.
-
-The system is split into independent services, each owning its own data and exposing a
-defined contract. Full design in [Assignment 2](Assignment2/).
-
-<div align="center">
-
-![CampusEats service map](Assignment2/services.png)
-
-</div>
-
----
 
 ## Team Members
 
