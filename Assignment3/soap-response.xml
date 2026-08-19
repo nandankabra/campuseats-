@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope
+    xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:types="http://partner.paygate.com/payment/types">
+  <soapenv:Body>
+    <types:chargeResponse>
+      <types:transactionId>PAY-987654321</types:transactionId>
+      <types:status>APPROVED</types:status>
+    </types:chargeResponse>
+  </soapenv:Body>
+</soapenv:Envelope>

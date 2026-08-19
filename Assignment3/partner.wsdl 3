@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wsdl:definitions name="PaymentService"
+        targetNamespace="http://partner.paygate.com/payment/wsdl"
+        xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+        xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:tns="http://partner.paygate.com/payment/wsdl"
+        xmlns:types="http://partner.paygate.com/payment/types">
+  <wsdl:types>
+    <xsd:schema targetNamespace="http://partner.paygate.com/payment/types"
+                elementFormDefault="qualified">
+      <xsd:element name="credentials" type="types:Credentials"/>
+      <xsd:complexType name="Credentials">
+        <xsd:sequence>
+          <xsd:element name="apiKey" type="xsd:string"/>
+          <xsd:element name="apiSecret" type="xsd:string"/>
+        </xsd:sequence>
+      </xsd:complexType>
+
+      <xsd:element name="chargeRequest">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="orderId" type="xsd:string"/>
+            <xsd:element name="amount" type="xsd:decimal"/>
+            <xsd:element name="currency" type="xsd:string"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+
+      <xsd:element name="chargeResponse">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="transactionId" type="xsd:string"/>
+            <xsd:element name="status" type="types:ChargeStatus"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+
+      <xsd:simpleType name="ChargeStatus">
+        <xsd:restriction base="xsd:string">
+          <xsd:enumeration value="APPROVED"/>
+          <xsd:enumeration value="DECLINED"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+
+      <xsd:element name="chargeFaultDetail">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="reasonCode" type="xsd:string"/>
+            <xsd:element name="reasonText" type="xsd:string"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+    </xsd:schema>
+  </wsdl:types>
+
+  <wsdl:message name="chargeRequestMessage">
+    <wsdl:part name="credentials" element="types:credentials"/>
+    <wsdl:part name="parameters" element="types:chargeRequest"/>
+  </wsdl:message>
+
+  <wsdl:message name="chargeResponseMessage">
+    <wsdl:part name="parameters" element="types:chargeResponse"/>
+  </wsdl:message>
+
+  <wsdl:message name="chargeFaultMessage">
+    <wsdl:part name="detail" element="types:chargeFaultDetail"/>
+  </wsdl:message>
+
+  <wsdl:portType name="PaymentPortType">
+    <wsdl:operation name="charge">
+      <wsdl:input message="tns:chargeRequestMessage"/>
+      <wsdl:output message="tns:chargeResponseMessage"/>
+      <wsdl:fault name="chargeFault" message="tns:chargeFaultMessage"/>
+    </wsdl:operation>
+  </wsdl:portType>
+
+  <wsdl:binding name="PaymentSOAPBinding" type="tns:PaymentPortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+    <wsdl:operation name="charge">
+      <soap:operation soapAction="urn:charge" style="document"/>
+      <wsdl:input>
+        <soap:header message="tns:chargeRequestMessage" part="credentials" use="literal"/>
+        <soap:body parts="parameters" use="literal"/>
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal"/>
+      </wsdl:output>
+      <wsdl:fault name="chargeFault">
+        <soap:fault name="chargeFault" use="literal"/>
+      </wsdl:fault>
+    </wsdl:operation>
+  </wsdl:binding>
+
+  <wsdl:service name="PaymentService">
+    <wsdl:port name="PaymentPort" binding="tns:PaymentSOAPBinding">
+      <soap:address location="https://api.paypartner.com/soap/payment"/>
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

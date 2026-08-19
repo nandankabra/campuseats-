@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope
+    xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:types="http://partner.paygate.com/payment/types">
+  <soapenv:Header>
+    <types:credentials>
+      <types:apiKey>campus-eats-key</types:apiKey>
+      <types:apiSecret>s3cr3t</types:apiSecret>
+    </types:credentials>
+  </soapenv:Header>
+  <soapenv:Body>
+    <types:chargeRequest>
+      <types:orderId>CE-2026-000123</types:orderId>
+      <types:amount>249.99</types:amount>
+      <types:currency>INR</types:currency>
+    </types:chargeRequest>
+  </soapenv:Body>
+</soapenv:Envelope>

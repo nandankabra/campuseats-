@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope
+    xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:types="http://partner.paygate.com/payment/types">
+  <soapenv:Body>
+    <soapenv:Fault>
+      <faultcode>soapenv:Server</faultcode>
+      <faultstring>Card declined by issuer</faultstring>
+      <detail>
+        <types:chargeFaultDetail>
+          <types:reasonCode>card_declined</types:reasonCode>
+          <types:reasonText>Insufficient funds</types:reasonText>
+        </types:chargeFaultDetail>
+      </detail>
+    </soapenv:Fault>
+  </soapenv:Body>
+</soapenv:Envelope>
