@@ -63,5 +63,3 @@ The main verbs in the CampusEats system are:
 ## Summary
 
 CampusEats is a campus-focused food ordering and delivery system that connects students with food providers. It simplifies food ordering, payment processing, order tracking, and delivery management while providing an efficient platform for restaurants and administrators to manage their operations.
-
-okkkk 
