@@ -1,0 +1,363 @@
+openapi: 3.0.3
+
+info:
+  title: CampusEats Orders Service
+  description: REST API for managing CampusEats orders
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080
+    description: Local Orders Service
+
+tags:
+  - name: Orders
+    description: Operations for CampusEats orders
+  - name: Cancellation
+    description: Order cancellation operations
+
+paths:
+
+  /orders:
+
+    post:
+      tags:
+        - Orders
+      summary: Create a new order
+      description: Creates an order and initiates payment processing.
+      operationId: createOrder
+
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          description: Unique key used to safely retry the same create request.
+          schema:
+            type: string
+            minLength: 1
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+
+      responses:
+
+        '201':
+          description: Order created successfully
+          headers:
+            Location:
+              description: URI of the newly created order
+              schema:
+                type: string
+                example: /orders/42
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+
+        '400':
+          description: Malformed request body
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+        '409':
+          description: Idempotency key conflicts with a previous request
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+        '422':
+          description: Request is valid but the domain refuses the order
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+        '503':
+          description: Payments service is unavailable after retries
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /orders/{id}:
+
+    get:
+      tags:
+        - Orders
+      summary: Get a single order
+      description: Returns one order by its identifier.
+      operationId: getOrder
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique order identifier.
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+
+      responses:
+
+        '200':
+          description: Order returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+
+        '404':
+          description: Order does not exist
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+
+  /orders/{id}/cancellation:
+
+    post:
+      tags:
+        - Cancellation
+      summary: Cancel an order
+      description: Requests cancellation of an existing order.
+      operationId: cancelOrder
+
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Unique order identifier.
+          schema:
+            type: integer
+            format: int64
+            minimum: 1
+
+      responses:
+
+        '202':
+          description: Cancellation accepted for processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+
+        '404':
+          description: Order does not exist
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+        '409':
+          description: Order cannot be cancelled in its current state
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+        '422':
+          description: Cancellation is refused by the domain
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+
+components:
+
+  schemas:
+
+    CreateOrderRequest:
+      type: object
+      required:
+        - userRef
+        - foodServiceRef
+        - totalAmount
+        - deliveryAddress
+        - items
+      properties:
+
+        userRef:
+          type: integer
+          format: int64
+          minimum: 1
+          example: 101
+
+        foodServiceRef:
+          type: integer
+          format: int64
+          minimum: 1
+          example: 10
+
+        totalAmount:
+          type: number
+          format: double
+          minimum: 0
+          example: 250.00
+
+        deliveryAddress:
+          type: string
+          minLength: 1
+          example: "Hostel A, Room 204"
+
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/OrderItemRequest'
+
+
+    OrderItemRequest:
+      type: object
+      required:
+        - foodItemRef
+        - itemName
+        - unitPrice
+        - quantity
+      properties:
+
+        foodItemRef:
+          type: integer
+          format: int64
+          minimum: 1
+          example: 501
+
+        itemName:
+          type: string
+          minLength: 1
+          example: "Veg Burger"
+
+        unitPrice:
+          type: number
+          format: double
+          minimum: 0
+          example: 125.00
+
+        quantity:
+          type: integer
+          minimum: 1
+          example: 2
+
+
+    OrderResponse:
+      type: object
+      required:
+        - orderId
+        - userRef
+        - foodServiceRef
+        - totalAmount
+        - deliveryAddress
+        - status
+        - items
+      properties:
+
+        orderId:
+          type: integer
+          format: int64
+          example: 42
+
+        userRef:
+          type: integer
+          format: int64
+          example: 101
+
+        foodServiceRef:
+          type: integer
+          format: int64
+          example: 10
+
+        totalAmount:
+          type: number
+          format: double
+          example: 250.00
+
+        deliveryAddress:
+          type: string
+          example: "Hostel A, Room 204"
+
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItemResponse'
+
+
+    OrderItemResponse:
+      type: object
+      required:
+        - foodItemRef
+        - itemName
+        - unitPrice
+        - quantity
+        - lineTotal
+      properties:
+
+        foodItemRef:
+          type: integer
+          format: int64
+          example: 501
+
+        itemName:
+          type: string
+          example: "Veg Burger"
+
+        unitPrice:
+          type: number
+          format: double
+          example: 125.00
+
+        quantity:
+          type: integer
+          example: 2
+
+        lineTotal:
+          type: number
+          format: double
+          example: 250.00
+
+
+    OrderStatus:
+      type: string
+      enum:
+        - PENDING
+        - CONFIRMED
+        - CANCELLED
+        - COMPLETED
+      example: PENDING
+
+
+    Problem:
+      type: object
+      required:
+        - type
+        - title
+        - status
+        - detail
+      properties:
+
+        type:
+          type: string
+          format: uri
+          example: https://campuseats.example.com/problems/order-not-found
+
+        title:
+          type: string
+          example: Order not found
+
+        status:
+          type: integer
+          example: 404
+
+        detail:
+          type: string
+          example: No order exists with id 42
