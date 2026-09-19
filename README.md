@@ -2,24 +2,20 @@
 
 # 🍽️ CampusEats
 
-**Design Benchmark** · CS 543 — Web Services · `Group 8`
+**Design Benchmark · CS 543 — Web Services · Group 8**
 
 </div>
 
 ---
 
-
-
 ## Team Members
 
-<!-- To add a username, replace the placeholder in BOTH the image src and the link. -->
-
-|                                                                            | Name              | Roll Number | GitHub                                               | Role   | Service   |
-|:--------------------------------------------------------------------------:|:------------------|:-----------:|:-----------------------------------------------------|:------:|:----------|
-| <img src="https://github.com/PRIYA-GITHUB.png" width="40" height="40" />   | **Priya**         | 20251651073 | [@PRIYA-GITHUB](https://github.com/priyamadaan9878-svg)     | Leader | User      |
-| <img src="https://github.com/NANDAN-GITHUB.png" width="40" height="40" />  | **Nandan Kabra**  | 20251651060 | [@NANDAN-GITHUB](https://github.com/nandankabra)   | Member | Catalogue |
-| <img src="https://github.com/NEERAJ-GITHUB.png" width="40" height="40" />  | **Neeraj Sharma** | 20251651063 | [@NEERAJ-GITHUB](https://github.com/neerajsharma132113)   | Member | Order     |
-| <img src="https://github.com/ABHINAV-GITHUB.png" width="40" height="40" /> | **Abhinav Gupta** | 20251651002 | [@ABHINAV-GITHUB](https://github.com/ABHINAVX03/) | Member | Payment   |
+| Name | Roll Number | GitHub | Role | Service |
+|:-----|:-----------:|:-------|:-----:|:--------|
+| **Priya** | 20251651073 | @priyamadaan9878-svg | Leader | User |
+| **Nandan Kabra** | 20251651060 | @nandankabra | Member | Catalogue |
+| **Neeraj Sharma** | 20251651063 | @neerajsharma132113 | Member | Order |
+| **Abhinav Gupta** | 20251651002 | @ABHINAVX03 | Member | Payment |
 
 ---
 
@@ -27,54 +23,102 @@
 
 ```text
 campuseats-/
-│
-├── README.md                     ← you are here
-├── .gitignore
-│
-├── Assignment1/                  HTTP basics & mock API
-│   ├── README.md                 write-up
-│   ├── brief.md                  system brief — nouns & verbs
-│   ├── http-log.md               curl -i request/response log
-│   ├── network-analysis.md       DevTools network profile
+
+├── README.md
+
+├── Assignment1/
+│   ├── README.md
+│   ├── brief.md
+│   ├── http-log.md
+│   ├── network-analysis.md
 │   └── campuseats-api/
-│       └── db.json               mock REST API seed data
-│
-└── Assignment2/                  Service design benchmark
-    ├── README.md                 write-up
-    ├── design.pdf                1 — capability list
-    ├── services.drawio / .png    2 — service map
-    ├── designtask3.pdf           3 — service contracts
-    ├── designtask4.pdf           4 — placeOrder specification
-    ├── schema.sql                5 — CREATE TABLE sketch
-    ├── schema.drawio / .png      5 — schema diagram
-    └── designtask6.pdf           6 — service validation
+│       └── db.json
+
+├── Assignment2/
+│   ├── README.md
+│   ├── design.pdf
+│   ├── designtask3.pdf
+│   ├── designtask4.pdf
+│   ├── designtask6.pdf
+│   ├── schema.sql
+│   ├── schema.drawio
+│   ├── schema.png
+│   ├── services.drawio
+│   └── services.png
+
+├── Assignment3/
+│   ├── integration.pdf
+│   ├── partner.wsdl
+│   ├── soap-request.xml
+│   ├── soap-response.xml
+│   └── soap-fault.xml
+
+├── Assignment4/
+│   └── campuseatsOrders/
+│       ├── pom.xml
+│       ├── openapi.yaml
+│       └── src/
+
+└── Assignment5/
+    ├── README.md
+    ├── NOTES.md
+    ├── openapi.yaml
+    ├── curl-transcript.txt
+    ├── pom.xml
+    └── src/
 ```
 
 ---
 
 ## Assignments
 
-| # | Assignment                   | Covers                                                             |
-|:-:|:-----------------------------|:-------------------------------------------------------------------|
-| 1 | [Assignment 1](Assignment1/) | System brief, mock REST API, HTTP logging, network analysis        |
-| 2 | [Assignment 2](Assignment2/) | Capabilities, service decomposition, contracts, schema, validation |
+| # | Assignment | Covers |
+|:-:|:-----------|:-------|
+| 1 | Assignment 1 | System Brief, Mock REST API, HTTP Logging, Network Analysis |
+| 2 | Assignment 2 | Service Design, Contracts, Schema Design, Validation |
+| 3 | Assignment 3 | SOAP Integration, WSDL, SOAP Requests & Responses |
+| 4 | Assignment 4 | RESTful Order Service, Spring Boot API, OpenAPI |
+| 5 | Assignment 5 | HTTP Methods, Headers, Authentication, ETag, Caching, Idempotency |
 
 ---
 
-## Contributors
+## Technologies Used
 
-<div align="center">
+- Java 21
+- Spring Boot
+- Maven
+- REST APIs
+- SOAP Web Services
+- OpenAPI
+- HTTP/1.1
+- JSON
+- XML
+- Draw.io
+- Git & GitHub
 
-<a href="https://github.com/nandankabra/campuseats-/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=nandankabra/campuseats-" alt="Contributors" />
-</a>
+---
 
-</div>
+## Learning Outcomes
+
+This repository demonstrates:
+
+- HTTP Methods and Status Codes
+- REST API Design
+- SOAP Integration
+- Service-Oriented Architecture
+- API Documentation
+- Authentication and Authorization
+- Caching with ETag
+- Idempotency Patterns
+- OpenAPI Specification
+- Service Contracts and Validation
 
 ---
 
 <div align="center">
 
-Indian Institute of Information Technology, Vadodara · Semester 3
+Indian Institute of Information Technology Vadodara  
+MCA 2025–2027  
+CS 543 – Web Services
 
 </div>
