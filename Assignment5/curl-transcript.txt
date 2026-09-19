@@ -1,0 +1,200 @@
+================================================================================
+Assignment 5 - CampusEats: HTTP Methods and Headers
+curl transcript
+Host: macOS (Nandans-MacBook-Air), working directory Assignment5
+Target: http://localhost:8080
+================================================================================
+
+--------------------------------------------------------------------------------
+1. List orders - initial state (empty)
+--------------------------------------------------------------------------------
+$ curl -H "Authorization: Bearer demo" http://localhost:8080/orders
+
+[]
+
+--------------------------------------------------------------------------------
+2. Create order
+--------------------------------------------------------------------------------
+$ curl -i \
+  -H "Authorization: Bearer demo" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: abc123" \
+  -d '{"customerName":"Nandan","totalAmount":500}' \
+  -X POST http://localhost:8080/orders
+
+HTTP/1.1 201
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 99
+Vary: Origin
+Vary: Access-Control-Request-Method
+Vary: Access-Control-Request-Headers
+Location: /orders/1
+Content-Type: application/json
+Transfer-Encoding: chunked
+
+{"orderId":1,"customerName":"Nandan","totalAmount":500,"status":"CREATED"}
+
+--------------------------------------------------------------------------------
+3. List orders - after creation
+--------------------------------------------------------------------------------
+$ curl -i -H "Authorization: Bearer demo" http://localhost:8080/orders
+
+HTTP/1.1 200
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 99
+Vary: Origin
+Vary: Access-Control-Request-Method
+Vary: Access-Control-Request-Headers
+Content-Type: application/json
+Transfer-Encoding: chunked
+
+[{"orderId":1,"customerName":"Nandan","totalAmount":500,"status":"CREATED","createdAt":"2026-09-19T05:28:55.262595Z"}]
+
+--------------------------------------------------------------------------------
+4. Get order by id
+--------------------------------------------------------------------------------
+$ curl -i -H "Authorization: Bearer demo" http://localhost:8080/orders/1
+
+HTTP/1.1 200
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 99
+Vary: Origin
+ETag: "1453530583"
+Cache-Control: max-age=60
+Content-Type: application/json
+Transfer-Encoding: chunked
+
+{"orderId":1,"customerName":"Nandan","totalAmount":500,"status":"CREATED"}
+
+--------------------------------------------------------------------------------
+5. Get order with non-matching If-None-Match
+--------------------------------------------------------------------------------
+$ curl -i \
+  -H "Authorization: Bearer demo" \
+  -H 'If-None-Match: "12345"' \
+  http://localhost:8080/orders/1
+
+HTTP/1.1 200
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 99
+Vary: Origin
+ETag: "483808708"
+Cache-Control: max-age=60
+Content-Type: application/json
+Transfer-Encoding: chunked
+
+{"orderId":1,"customerName":"Nandan","totalAmount":500,"status":"CREATED"}
+
+--------------------------------------------------------------------------------
+6. Cancel order
+--------------------------------------------------------------------------------
+$ curl -i -H "Authorization: Bearer demo" \
+  -X POST http://localhost:8080/orders/1/cancellation
+
+HTTP/1.1 200
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 99
+Vary: Origin
+Content-Type: application/json
+Transfer-Encoding: chunked
+
+{"orderId":1,"customerName":"Nandan","totalAmount":500,"status":"CANCELLED"}
+
+--------------------------------------------------------------------------------
+7. Delete order
+--------------------------------------------------------------------------------
+$ curl -i -H "Authorization: Bearer demo" \
+  -X DELETE http://localhost:8080/orders/1
+
+HTTP/1.1 204
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 99
+Vary: Origin
+
+--------------------------------------------------------------------------------
+8. Get non-existent order
+--------------------------------------------------------------------------------
+$ curl -i -H "Authorization: Bearer demo" http://localhost:8080/orders/999
+
+HTTP/1.1 404
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 99
+Vary: Origin
+Content-Type: application/json
+Transfer-Encoding: chunked
+
+{"title":"Not Found","status":404,"detail":"Order not found"}
+
+--------------------------------------------------------------------------------
+9. List orders - missing Authorization header
+--------------------------------------------------------------------------------
+$ curl -i http://localhost:8080/orders
+
+HTTP/1.1 401
+Vary: Origin
+Content-Type: application/json
+Transfer-Encoding: chunked
+
+{"timestamp":"2026-09-19T05:30:11.488+00:00","status":401,"error":"Unauthorized","path":"/orders"}
+
+================================================================================
+Service restarted and order 1 re-created (same request as test 2)
+before the tests below.
+================================================================================
+
+--------------------------------------------------------------------------------
+10. Conditional GET - 304 Not Modified
+--------------------------------------------------------------------------------
+$ curl -i \
+  -H "Authorization: Bearer demo" \
+  -H 'If-None-Match: "1453530583"' \
+  http://localhost:8080/orders/1
+
+HTTP/1.1 304
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 99
+Vary: Origin
+ETag: "1453530583"
+Cache-Control: max-age=60
+
+--------------------------------------------------------------------------------
+11. Create order again with the same Idempotency-Key
+--------------------------------------------------------------------------------
+$ curl -i \
+  -H "Authorization: Bearer demo" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: abc123" \
+  -d '{"customerName":"Nandan","totalAmount":500}' \
+  -X POST http://localhost:8080/orders
+
+HTTP/1.1 200
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 99
+Vary: Origin
+Content-Type: application/json
+Transfer-Encoding: chunked
+
+{"orderId":1,"customerName":"Nandan","totalAmount":500,"status":"CREATED"}
+
+--------------------------------------------------------------------------------
+12. Conditional write rejected - 412 Precondition Failed
+--------------------------------------------------------------------------------
+$ curl -i \
+  -H "Authorization: Bearer demo" \
+  -H "Content-Type: application/json" \
+  -H 'If-Match: "old-version"' \
+  -d '{"customerName":"Nandan","totalAmount":750}' \
+  -X PUT http://localhost:8080/orders/1
+
+HTTP/1.1 412
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 99
+Vary: Origin
+Content-Type: application/json
+Transfer-Encoding: chunked
+
+{"title":"Precondition Failed","status":412}
+
+================================================================================
+End of transcript
+================================================================================

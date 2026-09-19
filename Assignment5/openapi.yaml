@@ -1,0 +1,6 @@
+POST /orders
+GET /orders
+GET /orders/{id}
+DELETE /orders/{id}
+POST /orders/{id}/cancellation
+OPTIONS /orders
