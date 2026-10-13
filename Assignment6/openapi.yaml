@@ -1,0 +1,448 @@
+openapi: 3.0.3
+info:
+  title: CampusEats Orders API
+  description: CampusEats Order Management Service with honest HTTP status codes, RFC 7807 Problem Details, strict validation, and content negotiation.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+paths:
+  /orders:
+    post:
+      summary: Create a new order
+      description: Places a new food order. Supports idempotency via Idempotency-Key header.
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: false
+          schema:
+            type: string
+          description: Unique key ensuring idempotent order creation
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+            example: Bearer demo
+          description: Bearer token for authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+      responses:
+        '201':
+          description: Order created successfully
+          headers:
+            Location:
+              schema:
+                type: string
+                example: /orders/1
+              description: URI pointing to the newly created order
+            X-RateLimit-Limit:
+              schema:
+                type: integer
+                example: 100
+            X-RateLimit-Remaining:
+              schema:
+                type: integer
+                example: 99
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '200':
+          description: Idempotent replay of previously submitted order
+          headers:
+            Location:
+              schema:
+                type: string
+                example: /orders/1
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '401':
+          description: Unauthorized - missing or invalid Bearer token
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Conflict - item requested is out of stock / unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Unprocessable Entity - validation failure (empty cart, qty < 1, missing address) or payment declined
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '429':
+          description: Rate limit exceeded
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+                example: 60
+              description: Seconds to wait before retrying
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '500':
+          description: Internal Server Error - internal error mapped cleanly without leaking internals
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+
+    get:
+      summary: List all orders
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+            example: Bearer demo
+      responses:
+        '200':
+          description: List of all active orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrderResponse'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrderResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '429':
+          description: Rate limit exceeded
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+                example: 60
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+
+    options:
+      summary: Retrieve allowed HTTP methods
+      responses:
+        '204':
+          description: Preflight / Options response
+          headers:
+            Allow:
+              schema:
+                type: string
+                example: GET,POST,PATCH,DELETE,OPTIONS
+
+  /orders/{id}:
+    get:
+      summary: Get order by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+            example: Bearer demo
+        - name: If-None-Match
+          in: header
+          required: false
+          schema:
+            type: string
+            example: "\"1754942194\""
+          description: ETag from previously retrieved representation
+        - name: Accept
+          in: header
+          required: false
+          schema:
+            type: string
+            example: application/json
+          description: Content negotiation preference (application/json or application/xml)
+      responses:
+        '200':
+          description: Order details representation
+          headers:
+            ETag:
+              schema:
+                type: string
+                example: "\"1754942194\""
+            Cache-Control:
+              schema:
+                type: string
+                example: max-age=60
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '304':
+          description: Not Modified - client cache is fresh matching If-None-Match
+          headers:
+            ETag:
+              schema:
+                type: string
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Order Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '406':
+          description: Not Acceptable - unsupported Accept media type
+          content:
+            text/plain:
+              schema:
+                type: string
+
+    patch:
+      summary: Partially update order status or delivery address
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+            example: Bearer demo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchOrderRequest'
+      responses:
+        '200':
+          description: Order successfully patched
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Order Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '409':
+          description: Conflict - illegal state transition (e.g. updating cancelled order)
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '422':
+          description: Unprocessable Entity - invalid patch payload
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+
+    delete:
+      summary: Cancel and delete order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: Authorization
+          in: header
+          required: true
+          schema:
+            type: string
+            example: Bearer demo
+      responses:
+        '204':
+          description: Order deleted successfully with no body
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+        '404':
+          description: Order Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
+
+components:
+  schemas:
+    OrderItemDto:
+      type: object
+      required:
+        - name
+        - qty
+      properties:
+        name:
+          type: string
+          example: Chicken Burger
+        qty:
+          type: integer
+          minimum: 1
+          example: 2
+        price:
+          type: number
+          format: double
+          example: 150.00
+
+    CreateOrderRequest:
+      type: object
+      required:
+        - customerName
+        - address
+        - items
+      properties:
+        customerName:
+          type: string
+          example: Nandan Kabra
+        address:
+          type: string
+          example: Campus Hostel Block B
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/OrderItemDto'
+        totalAmount:
+          type: number
+          format: double
+          example: 380.00
+        paymentMethod:
+          type: string
+          example: CARD
+        simulateInternalError:
+          type: boolean
+          example: false
+
+    PatchOrderRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [CREATED, CONFIRMED, CANCELLED]
+          example: CONFIRMED
+        address:
+          type: string
+          example: Room 204, Campus Hostel Block B
+
+    OrderResponse:
+      type: object
+      properties:
+        orderId:
+          type: integer
+          example: 1
+        customerName:
+          type: string
+          example: Nandan Kabra
+        address:
+          type: string
+          example: Campus Hostel Block B
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItemDto'
+        totalAmount:
+          type: number
+          format: double
+          example: 380.00
+        status:
+          type: string
+          example: CREATED
+
+    FieldErrorDetail:
+      type: object
+      properties:
+        field:
+          type: string
+          example: address
+        reason:
+          type: string
+          example: Delivery address is required
+
+    ProblemDetails:
+      type: object
+      required:
+        - type
+        - title
+        - status
+        - detail
+      properties:
+        type:
+          type: string
+          description: Stable error type string from catalogue
+          enum:
+            - empty-cart
+            - item-unavailable
+            - payment-declined
+            - order-not-found
+            - illegal-transition
+            - validation-error
+            - rate-limit-exceeded
+            - unauthorized
+            - internal-error
+          example: validation-error
+        title:
+          type: string
+          example: Validation Failed
+        status:
+          type: integer
+          example: 422
+        detail:
+          type: string
+          example: Request validation failed with 2 error(s)
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/FieldErrorDetail'

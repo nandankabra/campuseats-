@@ -59,12 +59,21 @@ campuseats-/
 │       ├── openapi.yaml
 │       └── src/
 
-└── Assignment5/
-    ├── README.md
+├── Assignment5/
+│   ├── README.md
+│   ├── NOTES.md
+│   ├── openapi.yaml
+│   ├── curl-transcript.txt
+│   ├── pom.xml
+│   └── src/
+
+└── Assignment6/
+    ├── CS543_A06.pdf
     ├── NOTES.md
     ├── openapi.yaml
-    ├── curl-transcript.txt
+    ├── transcript.txt
     ├── pom.xml
+    ├── CampusEats_Assignment6_Group8.zip
     └── src/
 ```
 
@@ -79,6 +88,7 @@ campuseats-/
 | 3 | Assignment 3 | SOAP Integration, WSDL, SOAP Requests & Responses |
 | 4 | Assignment 4 | RESTful Order Service, Spring Boot API, OpenAPI |
 | 5 | Assignment 5 | HTTP Methods, Headers, Authentication, ETag, Caching, Idempotency |
+| 6 | Assignment 6 | Honest Responses, Status Codes, RFC 7807 Problem Details, Error Catalogues, Validation & Content Negotiation |
 
 ---
 
@@ -89,10 +99,10 @@ campuseats-/
 - Maven
 - REST APIs
 - SOAP Web Services
-- OpenAPI
+- OpenAPI 3.0
+- RFC 7807 Problem Details
 - HTTP/1.1
-- JSON
-- XML
+- JSON & Jackson XML
 - Draw.io
 - Git & GitHub
 
@@ -106,12 +116,26 @@ This repository demonstrates:
 - REST API Design
 - SOAP Integration
 - Service-Oriented Architecture
-- API Documentation
-- Authentication and Authorization
-- Caching with ETag
-- Idempotency Patterns
-- OpenAPI Specification
-- Service Contracts and Validation
+- API Documentation (OpenAPI 3.0)
+- Authentication and Authorization (Bearer Tokens)
+- Caching with ETag and Conditional Requests (`If-None-Match`, `304 Not Modified`)
+- Idempotency Patterns (`Idempotency-Key`, `201 Created` vs `200 OK`)
+- RFC 7807 Problem Details Standard (`application/problem+json`)
+- Strict Request Validation & Multi-Field Error Aggregation (`422 Unprocessable Entity`)
+- Safe Exception Masking without Internal Information Leakage
+- HTTP Content Negotiation (JSON/XML) & Unsupported Media Types (`406 Not Acceptable`)
+- Rate Limiting and Retry Safety (`429 Too Many Requests`, `Retry-After`)
+- Service Contracts and Schema Validation
+
+---
+
+## Contributors
+
+<div align="center">
+
+https://github.com/nandankabra/campuseats-/graphs/contributors
+
+</div>
 
 ---
 

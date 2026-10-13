@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ============================================================================
+  UniPay Payment Gateway - Partner WSDL
+  ============================================================================
+  CS543 Web Services - Assignment 3 (CampusEats)
+
+  DESIGN-TIME ARTIFACT ONLY.
+
+  UniPay is a fictional external payment partner used for coursework. The
+  endpoint https://api.unipay.example.com/soap/payment is a design-time
+  placeholder on the reserved .example.com domain and is NOT a live service.
+  No SOAP server is deployed and no real payment traffic is exchanged.
+  ============================================================================
+-->
+<wsdl:definitions
+    name="UniPayPaymentService"
+    targetNamespace="http://unipay.example.com/payment/v1"
+    xmlns:tns="http://unipay.example.com/payment/v1"
+    xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+    xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+  <wsdl:documentation>
+    UniPay Payment Gateway - card charge operation exposed to merchant systems
+    over SOAP 1.1 / HTTP. Merchant identity is carried in a SOAP header;
+    business payload is carried in the SOAP body. Payment failures are returned
+    as declared SOAP faults, not as success responses with an error flag.
+  </wsdl:documentation>
+
+  <!-- ======================= 1. TYPES ======================= -->
+  <wsdl:types>
+    <xsd:schema
+        targetNamespace="http://unipay.example.com/payment/v1"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        elementFormDefault="qualified">
+
+      <!-- ========== Reusable simple types ========== -->
+      <xsd:simpleType name="MerchantIdType">
+        <xsd:restriction base="xsd:string">
+          <xsd:pattern value="[A-Z0-9]{6,20}"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+
+      <xsd:simpleType name="AmountType">
+        <xsd:restriction base="xsd:decimal">
+          <xsd:minExclusive value="0"/>
+          <xsd:fractionDigits value="2"/>
+          <xsd:totalDigits value="12"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+
+      <xsd:simpleType name="CurrencyType">
+        <xsd:restriction base="xsd:string">
+          <xsd:pattern value="[A-Z]{3}"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+
+      <xsd:simpleType name="StatusType">
+        <xsd:restriction base="xsd:string">
+          <xsd:enumeration value="APPROVED"/>
+          <xsd:enumeration value="PENDING"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+
+      <xsd:simpleType name="FaultCodeType">
+        <xsd:restriction base="xsd:string">
+          <xsd:enumeration value="card_declined"/>
+          <xsd:enumeration value="insufficient_funds"/>
+          <xsd:enumeration value="invalid_card_token"/>
+          <xsd:enumeration value="merchant_not_authorised"/>
+          <xsd:enumeration value="duplicate_order"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+
+      <!-- ========== SOAP header: merchant credentials ========== -->
+      <xsd:element name="Credentials">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="merchantId" type="tns:MerchantIdType"/>
+            <xsd:element name="apiKey"     type="xsd:string"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+
+      <!-- ========== Request body ========== -->
+      <xsd:element name="ChargeRequest">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="orderId"   type="xsd:string"/>
+            <xsd:element name="amount"    type="tns:AmountType"/>
+            <xsd:element name="currency"  type="tns:CurrencyType"/>
+            <xsd:element name="cardToken" type="xsd:string"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+
+      <!-- ========== Success response body ========== -->
+      <xsd:element name="ChargeResponse">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="transactionId" type="xsd:string"/>
+            <xsd:element name="status"        type="tns:StatusType"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+
+      <!-- ========== Fault detail ========== -->
+      <xsd:element name="ChargeFault">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="faultCode"   type="tns:FaultCodeType"/>
+            <xsd:element name="faultReason" type="xsd:string"/>
+            <xsd:element name="orderId"     type="xsd:string" minOccurs="0"/>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+
+    </xsd:schema>
+  </wsdl:types>
+
+  <!-- ======================= 2. MESSAGES ======================= -->
+  <wsdl:message name="ChargeRequestMessage">
+    <wsdl:part name="parameters"  element="tns:ChargeRequest"/>
+    <wsdl:part name="credentials" element="tns:Credentials"/>
+  </wsdl:message>
+
+  <wsdl:message name="ChargeResponseMessage">
+    <wsdl:part name="parameters" element="tns:ChargeResponse"/>
+  </wsdl:message>
+
+  <wsdl:message name="ChargeFaultMessage">
+    <wsdl:part name="fault" element="tns:ChargeFault"/>
+  </wsdl:message>
+
+  <!-- ======================= 3. PORT TYPE ======================= -->
+  <wsdl:portType name="PaymentPortType">
+    <wsdl:operation name="charge">
+      <wsdl:documentation>
+        Authorises and captures a single card payment for one merchant order.
+        Returns transactionId and status on success; raises ChargeFault when
+        the payment cannot be completed.
+      </wsdl:documentation>
+      <wsdl:input  name="ChargeRequest"  message="tns:ChargeRequestMessage"/>
+      <wsdl:output name="ChargeResponse" message="tns:ChargeResponseMessage"/>
+      <wsdl:fault  name="ChargeFault"    message="tns:ChargeFaultMessage"/>
+    </wsdl:operation>
+  </wsdl:portType>
+
+  <!-- ======================= 4. BINDING (SOAP 1.1 over HTTP) ======= -->
+  <wsdl:binding name="PaymentSoapBinding" type="tns:PaymentPortType">
+    <soap:binding style="document"
+                  transport="http://schemas.xmlsoap.org/soap/http"/>
+
+    <wsdl:operation name="charge">
+      <soap:operation soapAction="charge" style="document"/>
+
+      <wsdl:input name="ChargeRequest">
+        <soap:body use="literal" parts="parameters"/>
+        <soap:header message="tns:ChargeRequestMessage"
+                     part="credentials"
+                     use="literal"/>
+      </wsdl:input>
+
+      <wsdl:output name="ChargeResponse">
+        <soap:body use="literal" parts="parameters"/>
+      </wsdl:output>
+
+      <wsdl:fault name="ChargeFault">
+        <soap:fault name="ChargeFault" use="literal"/>
+      </wsdl:fault>
+    </wsdl:operation>
+  </wsdl:binding>
+
+  <!-- ======================= 5. SERVICE + 6. PORT ================== -->
+  <wsdl:service name="UniPayPaymentService">
+    <wsdl:documentation>
+      UniPay Payment Gateway. Design-time endpoint on the reserved
+      .example.com domain; not a live production service.
+    </wsdl:documentation>
+    <wsdl:port name="PaymentPort" binding="tns:PaymentSoapBinding">
+      <soap:address location="https://api.unipay.example.com/soap/payment"/>
+    </wsdl:port>
+  </wsdl:service>
+
+</wsdl:definitions>

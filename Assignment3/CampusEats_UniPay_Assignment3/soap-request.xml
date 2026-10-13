@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  SOAP 1.1 request sent by the CampusEats Payments service to the external
+  UniPay partner. Design-time sample only; conforms to partner.wsdl
+  (operation: charge, SOAPAction: "charge").
+-->
+<soapenv:Envelope
+    xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:pay="http://unipay.example.com/payment/v1">
+
+  <soapenv:Header>
+    <pay:Credentials>
+      <pay:merchantId>CAMPUSEATS001</pay:merchantId>
+      <pay:apiKey>sk_test_unipay_9f3c1a7b2d</pay:apiKey>
+    </pay:Credentials>
+  </soapenv:Header>
+
+  <soapenv:Body>
+    <pay:ChargeRequest>
+      <pay:orderId>CE1001</pay:orderId>
+      <pay:amount>850.00</pay:amount>
+      <pay:currency>INR</pay:currency>
+      <pay:cardToken>tok_test_12345</pay:cardToken>
+    </pay:ChargeRequest>
+  </soapenv:Body>
+
+</soapenv:Envelope>

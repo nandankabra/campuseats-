@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope
+    xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:pay="http://unipay.example.com/payment/v1">
+
+  <soapenv:Body>
+    <soapenv:Fault>
+      <faultcode>soapenv:Client</faultcode>
+      <faultstring>Payment declined by issuing bank</faultstring>
+      <faultactor>https://api.unipay.example.com/soap/payment</faultactor>
+      <detail>
+        <pay:ChargeFault>
+          <pay:faultCode>card_declined</pay:faultCode>
+          <pay:faultReason>The issuing bank declined this card.</pay:faultReason>
+          <pay:orderId>CE1001</pay:orderId>
+        </pay:ChargeFault>
+      </detail>
+    </soapenv:Fault>
+  </soapenv:Body>
+
+</soapenv:Envelope>

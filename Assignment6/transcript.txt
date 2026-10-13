@@ -1,0 +1,393 @@
+================================================================================
+Assignment 6 - CampusEats: Honest Responses, Status Codes, Errors & Validation
+Host: macOS (Darwin arm64) | Working Directory: Assignment6
+Target: http://localhost:8080 | Date: Tue Oct 13 15:52:28 IST 2026
+================================================================================
+
+--------------------------------------------------------------------------------
+1. Authentication Failure - Missing Bearer Token (401 Unauthorized)
+--------------------------------------------------------------------------------
+$ curl -s -S -i http://localhost:8080/orders
+
+HTTP/1.1 401 
+Content-Type: application/problem+json;charset=utf-8
+Content-Length: 153
+Date: Tue, 13 Oct 2026 10:22:28 GMT
+
+{"type":"unauthorized","title":"Unauthorized","status":401,"detail":"Authentication required. Provide a valid Bearer token in the Authorization header."}
+
+--------------------------------------------------------------------------------
+2. List Orders - Active state (200 OK)
+--------------------------------------------------------------------------------
+$ curl -s -S -i -H "Authorization: Bearer demo" http://localhost:8080/orders
+
+HTTP/1.1 200 
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 99
+Vary: Origin
+Vary: Access-Control-Request-Method
+Vary: Access-Control-Request-Headers
+Content-Type: application/json;charset=UTF-8
+Transfer-Encoding: chunked
+Date: Tue, 13 Oct 2026 10:22:28 GMT
+
+[{"orderId":2,"customerName":"Nandan Kabra","address":"Campus Hostel Block B","items":[{"name":"Chicken Burger","qty":2,"price":150},{"name":"French Fries","qty":1,"price":80}],"totalAmount":380,"status":"CREATED"}]
+
+--------------------------------------------------------------------------------
+3. Happy Path - Create Order (201 Created with Location header & JSON body)
+--------------------------------------------------------------------------------
+$ curl -s -S -i -H "Authorization: Bearer demo" -H "Content-Type: application/json" -H "Idempotency-Key: idem-create-1791886948" -d '{"customerName":"Nandan Kabra","address":"Campus Hostel Block B","items":[{"name":"Chicken Burger","qty":2,"price":150},{"name":"French Fries","qty":1,"price":80}]}' -X POST http://localhost:8080/orders
+
+HTTP/1.1 201 
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 99
+Vary: Origin
+Vary: Access-Control-Request-Method
+Vary: Access-Control-Request-Headers
+Location: /orders/4
+Content-Type: application/json;charset=UTF-8
+Transfer-Encoding: chunked
+Date: Tue, 13 Oct 2026 10:22:28 GMT
+
+{"orderId":4,"customerName":"Nandan Kabra","address":"Campus Hostel Block B","items":[{"name":"Chicken Burger","qty":2,"price":150},{"name":"French Fries","qty":1,"price":80}],"totalAmount":380,"status":"CREATED"}
+
+--------------------------------------------------------------------------------
+4. Idempotency Replay - Re-send identical request with same key (200 OK, not 201)
+--------------------------------------------------------------------------------
+$ curl -s -S -i -H "Authorization: Bearer demo" -H "Content-Type: application/json" -H "Idempotency-Key: idem-create-1791886948" -d '{"customerName":"Nandan Kabra","address":"Campus Hostel Block B","items":[{"name":"Chicken Burger","qty":2,"price":150},{"name":"French Fries","qty":1,"price":80}]}' -X POST http://localhost:8080/orders
+
+HTTP/1.1 200 
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 99
+Vary: Origin
+Vary: Access-Control-Request-Method
+Vary: Access-Control-Request-Headers
+Location: /orders/4
+Content-Type: application/json;charset=UTF-8
+Transfer-Encoding: chunked
+Date: Tue, 13 Oct 2026 10:22:28 GMT
+
+{"orderId":4,"customerName":"Nandan Kabra","address":"Campus Hostel Block B","items":[{"name":"Chicken Burger","qty":2,"price":150},{"name":"French Fries","qty":1,"price":80}],"totalAmount":380,"status":"CREATED"}
+
+--------------------------------------------------------------------------------
+5. Get Order by ID (200 OK with deterministic ETag & Cache-Control: max-age=60)
+--------------------------------------------------------------------------------
+$ curl -s -S -i -H "Authorization: Bearer demo" http://localhost:8080/orders/4
+
+HTTP/1.1 200 
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 99
+Vary: Origin
+Vary: Access-Control-Request-Method
+Vary: Access-Control-Request-Headers
+ETag: "1757712757"
+Cache-Control: max-age=60
+Content-Type: application/json;charset=UTF-8
+Transfer-Encoding: chunked
+Date: Tue, 13 Oct 2026 10:22:28 GMT
+
+{"orderId":4,"customerName":"Nandan Kabra","address":"Campus Hostel Block B","items":[{"name":"Chicken Burger","qty":2,"price":150},{"name":"French Fries","qty":1,"price":80}],"totalAmount":380,"status":"CREATED"}
+
+--------------------------------------------------------------------------------
+6. Conditional Request - Matching ETag (304 Not Modified)
+--------------------------------------------------------------------------------
+$ curl -s -S -i -H "Authorization: Bearer demo" -H 'If-None-Match: "1757712757"' http://localhost:8080/orders/4
+
+HTTP/1.1 304 
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 99
+Vary: Origin
+Vary: Access-Control-Request-Method
+Vary: Access-Control-Request-Headers
+ETag: "1757712757"
+Date: Tue, 13 Oct 2026 10:22:28 GMT
+
+
+
+--------------------------------------------------------------------------------
+7. Content Negotiation - Accept: application/xml (200 OK with XML representation)
+--------------------------------------------------------------------------------
+$ curl -s -S -i -H "Authorization: Bearer demo" -H "Accept: application/xml" http://localhost:8080/orders/4
+
+HTTP/1.1 200 
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 99
+Vary: Origin
+Vary: Access-Control-Request-Method
+Vary: Access-Control-Request-Headers
+ETag: "1757712757"
+Cache-Control: max-age=60
+Content-Type: application/xml;charset=UTF-8
+Transfer-Encoding: chunked
+Date: Tue, 13 Oct 2026 10:22:28 GMT
+
+<order><orderId>4</orderId><customerName>Nandan Kabra</customerName><address>Campus Hostel Block B</address><items><item><name>Chicken Burger</name><qty>2</qty><price>150</price></item><item><name>French Fries</name><qty>1</qty><price>80</price></item></items><totalAmount>380</totalAmount><status>CREATED</status></order>
+
+--------------------------------------------------------------------------------
+8. Content Negotiation - Accept: application/json (200 OK with JSON representation)
+--------------------------------------------------------------------------------
+$ curl -s -S -i -H "Authorization: Bearer demo" -H "Accept: application/json" http://localhost:8080/orders/4
+
+HTTP/1.1 200 
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 99
+Vary: Origin
+Vary: Access-Control-Request-Method
+Vary: Access-Control-Request-Headers
+ETag: "1757712757"
+Cache-Control: max-age=60
+Content-Type: application/json;charset=UTF-8
+Transfer-Encoding: chunked
+Date: Tue, 13 Oct 2026 10:22:28 GMT
+
+{"orderId":4,"customerName":"Nandan Kabra","address":"Campus Hostel Block B","items":[{"name":"Chicken Burger","qty":2,"price":150},{"name":"French Fries","qty":1,"price":80}],"totalAmount":380,"status":"CREATED"}
+
+--------------------------------------------------------------------------------
+9. Content Negotiation - Accept: text/csv (406 Not Acceptable)
+--------------------------------------------------------------------------------
+$ curl -s -S -i -H "Authorization: Bearer demo" -H "Accept: text/csv" http://localhost:8080/orders/4
+
+HTTP/1.1 406 
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 99
+Content-Type: text/plain;charset=utf-8
+Content-Length: 87
+Date: Tue, 13 Oct 2026 10:22:28 GMT
+
+406 Not Acceptable: Supported representations are application/json and application/xml
+
+
+--------------------------------------------------------------------------------
+10. PATCH Order - Update delivery address & set status CONFIRMED (200 OK)
+--------------------------------------------------------------------------------
+$ curl -s -S -i -H "Authorization: Bearer demo" -H "Content-Type: application/json" -d '{"status":"CONFIRMED","address":"Room 204, Campus Hostel Block B"}' -X PATCH http://localhost:8080/orders/4
+
+HTTP/1.1 200 
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 99
+Vary: Origin
+Vary: Access-Control-Request-Method
+Vary: Access-Control-Request-Headers
+Content-Type: application/json;charset=UTF-8
+Transfer-Encoding: chunked
+Date: Tue, 13 Oct 2026 10:22:28 GMT
+
+{"orderId":4,"customerName":"Nandan Kabra","address":"Room 204, Campus Hostel Block B","items":[{"name":"Chicken Burger","qty":2,"price":150},{"name":"French Fries","qty":1,"price":80}],"totalAmount":380,"status":"CONFIRMED"}
+
+--------------------------------------------------------------------------------
+11. Field-Level Validation Error - Empty address & qty <= 0 (422 Unprocessable Entity)
+--------------------------------------------------------------------------------
+$ curl -s -S -i -H "Authorization: Bearer demo" -H "Content-Type: application/json" -d '{"customerName":"Nandan Kabra","address":"","items":[{"name":"Burger","qty":0,"price":100}]}' -X POST http://localhost:8080/orders
+
+HTTP/1.1 422 
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 99
+Vary: Origin
+Vary: Access-Control-Request-Method
+Vary: Access-Control-Request-Headers
+Content-Type: application/problem+json;charset=utf-8
+Transfer-Encoding: chunked
+Date: Tue, 13 Oct 2026 10:22:28 GMT
+
+{"type":"validation-error","title":"Validation Failed","status":422,"detail":"Request validation failed with 2 error(s)","errors":[{"field":"items[0].qty","reason":"Quantity must be an integer >= 1"},{"field":"address","reason":"Delivery address is required"}]}
+
+--------------------------------------------------------------------------------
+12. Cart Validation - Empty items array (422 Unprocessable Entity, empty-cart)
+--------------------------------------------------------------------------------
+$ curl -s -S -i -H "Authorization: Bearer demo" -H "Content-Type: application/json" -d '{"customerName":"Nandan Kabra","address":"Campus Hostel","items":[]}' -X POST http://localhost:8080/orders
+
+HTTP/1.1 422 
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 99
+Vary: Origin
+Vary: Access-Control-Request-Method
+Vary: Access-Control-Request-Headers
+Content-Type: application/problem+json;charset=utf-8
+Transfer-Encoding: chunked
+Date: Tue, 13 Oct 2026 10:22:28 GMT
+
+{"type":"empty-cart","title":"Empty Cart","status":422,"detail":"Order cart cannot be empty. At least one item is required."}
+
+--------------------------------------------------------------------------------
+13. Inventory Check - Item out of stock (409 Conflict, item-unavailable)
+--------------------------------------------------------------------------------
+$ curl -s -S -i -H "Authorization: Bearer demo" -H "Content-Type: application/json" -d '{"customerName":"Nandan Kabra","address":"Campus Hostel","items":[{"name":"OUT_OF_STOCK Burger","qty":1,"price":120}]}' -X POST http://localhost:8080/orders
+
+HTTP/1.1 409 
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 99
+Vary: Origin
+Vary: Access-Control-Request-Method
+Vary: Access-Control-Request-Headers
+Content-Type: application/problem+json;charset=utf-8
+Transfer-Encoding: chunked
+Date: Tue, 13 Oct 2026 10:22:28 GMT
+
+{"type":"item-unavailable","title":"Item Unavailable","status":409,"detail":"Item 'OUT_OF_STOCK Burger' is currently out of stock or unavailable"}
+
+--------------------------------------------------------------------------------
+14. Payment Processing - Card declined (422 Unprocessable Entity, payment-declined)
+--------------------------------------------------------------------------------
+$ curl -s -S -i -H "Authorization: Bearer demo" -H "Content-Type: application/json" -d '{"customerName":"Nandan Kabra","address":"Campus Hostel","items":[{"name":"Burger","qty":1,"price":100}],"paymentMethod":"DECLINED"}' -X POST http://localhost:8080/orders
+
+HTTP/1.1 422 
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 99
+Vary: Origin
+Vary: Access-Control-Request-Method
+Vary: Access-Control-Request-Headers
+Content-Type: application/problem+json;charset=utf-8
+Transfer-Encoding: chunked
+Date: Tue, 13 Oct 2026 10:22:28 GMT
+
+{"type":"payment-declined","title":"Payment Declined","status":422,"detail":"Card declined: insufficient funds or invalid card details"}
+
+--------------------------------------------------------------------------------
+15. Resource Lookup - Non-existent order ID (404 Not Found, order-not-found)
+--------------------------------------------------------------------------------
+$ curl -s -S -i -H "Authorization: Bearer demo" http://localhost:8080/orders/9999
+
+HTTP/1.1 404 
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 99
+Vary: Origin
+Vary: Access-Control-Request-Method
+Vary: Access-Control-Request-Headers
+Content-Type: application/problem+json;charset=utf-8
+Transfer-Encoding: chunked
+Date: Tue, 13 Oct 2026 10:22:28 GMT
+
+{"type":"order-not-found","title":"Order Not Found","status":404,"detail":"Order with id 9999 was not found"}
+
+--------------------------------------------------------------------------------
+16. State Machine - Transition CONFIRMED back to CREATED (409 Conflict, illegal-transition)
+--------------------------------------------------------------------------------
+$ curl -s -S -i -H "Authorization: Bearer demo" -H "Content-Type: application/json" -d '{"status":"CREATED"}' -X PATCH http://localhost:8080/orders/4
+
+HTTP/1.1 409 
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 99
+Vary: Origin
+Vary: Access-Control-Request-Method
+Vary: Access-Control-Request-Headers
+Content-Type: application/problem+json;charset=utf-8
+Transfer-Encoding: chunked
+Date: Tue, 13 Oct 2026 10:22:28 GMT
+
+{"type":"illegal-transition","title":"Illegal State Transition","status":409,"detail":"Cannot transition order from status CONFIRMED to CREATED"}
+
+--------------------------------------------------------------------------------
+17. State Machine - Transition CONFIRMED to CANCELLED (200 OK)
+--------------------------------------------------------------------------------
+$ curl -s -S -i -H "Authorization: Bearer demo" -H "Content-Type: application/json" -d '{"status":"CANCELLED"}' -X PATCH http://localhost:8080/orders/4
+
+HTTP/1.1 200 
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 99
+Vary: Origin
+Vary: Access-Control-Request-Method
+Vary: Access-Control-Request-Headers
+Content-Type: application/json;charset=UTF-8
+Transfer-Encoding: chunked
+Date: Tue, 13 Oct 2026 10:22:28 GMT
+
+{"orderId":4,"customerName":"Nandan Kabra","address":"Room 204, Campus Hostel Block B","items":[{"name":"Chicken Burger","qty":2,"price":150},{"name":"French Fries","qty":1,"price":80}],"totalAmount":380,"status":"CANCELLED"}
+
+--------------------------------------------------------------------------------
+18. State Machine - Attempt to re-confirm CANCELLED order (409 Conflict, illegal-transition)
+--------------------------------------------------------------------------------
+$ curl -s -S -i -H "Authorization: Bearer demo" -H "Content-Type: application/json" -d '{"status":"CONFIRMED"}' -X PATCH http://localhost:8080/orders/4
+
+HTTP/1.1 409 
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 99
+Vary: Origin
+Vary: Access-Control-Request-Method
+Vary: Access-Control-Request-Headers
+Content-Type: application/problem+json;charset=utf-8
+Transfer-Encoding: chunked
+Date: Tue, 13 Oct 2026 10:22:28 GMT
+
+{"type":"illegal-transition","title":"Illegal State Transition","status":409,"detail":"Cannot transition order from status CANCELLED to CONFIRMED"}
+
+--------------------------------------------------------------------------------
+19. Rate Limiting - Threshold exceeded (429 Too Many Requests with Retry-After: 60)
+--------------------------------------------------------------------------------
+$ curl -s -S -i -H "Authorization: Bearer demo" -H "X-Simulate-Rate-Limit: true" http://localhost:8080/orders
+
+HTTP/1.1 429 
+Retry-After: 60
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 0
+Content-Type: application/problem+json;charset=utf-8
+Content-Length: 150
+Date: Tue, 13 Oct 2026 10:22:28 GMT
+
+{"type":"rate-limit-exceeded","title":"Too Many Requests","status":429,"detail":"Rate limit of 100 requests exceeded. Please retry after 60 seconds."}
+
+--------------------------------------------------------------------------------
+20. Internal Error Masking - Simulated SQL/replica failure (500 Internal Server Error)
+--------------------------------------------------------------------------------
+$ curl -s -S -i -H "Authorization: Bearer demo" -H "Content-Type: application/json" -d '{"customerName":"Nandan Kabra","address":"Campus Hostel","items":[{"name":"Burger","qty":1,"price":100}],"simulateInternalError":true}' -X POST http://localhost:8080/orders
+
+HTTP/1.1 500 
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 99
+Vary: Origin
+Vary: Access-Control-Request-Method
+Vary: Access-Control-Request-Headers
+Content-Type: application/problem+json;charset=utf-8
+Transfer-Encoding: chunked
+Date: Tue, 13 Oct 2026 10:22:28 GMT
+Connection: close
+
+{"type":"internal-error","title":"Internal Server Error","status":500,"detail":"An unexpected internal error occurred while processing your order. Please try again later."}
+
+--------------------------------------------------------------------------------
+21. Delete Order - Successful deletion (204 No Content)
+--------------------------------------------------------------------------------
+$ curl -s -S -i -H "Authorization: Bearer demo" -X DELETE http://localhost:8080/orders/4
+
+HTTP/1.1 204 
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 99
+Vary: Origin
+Vary: Access-Control-Request-Method
+Vary: Access-Control-Request-Headers
+Date: Tue, 13 Oct 2026 10:22:28 GMT
+
+
+
+--------------------------------------------------------------------------------
+22. Delete Order - Repeated deletion (404 Not Found, order-not-found)
+--------------------------------------------------------------------------------
+$ curl -s -S -i -H "Authorization: Bearer demo" -X DELETE http://localhost:8080/orders/4
+
+HTTP/1.1 404 
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 99
+Vary: Origin
+Vary: Access-Control-Request-Method
+Vary: Access-Control-Request-Headers
+Content-Type: application/problem+json;charset=utf-8
+Transfer-Encoding: chunked
+Date: Tue, 13 Oct 2026 10:22:28 GMT
+
+{"type":"order-not-found","title":"Order Not Found","status":404,"detail":"Order with id 4 was not found"}
+
+--------------------------------------------------------------------------------
+23. CORS / Method Discovery - OPTIONS /orders (204 No Content with Allow header)
+--------------------------------------------------------------------------------
+$ curl -s -S -i -H "Authorization: Bearer demo" -X OPTIONS http://localhost:8080/orders
+
+HTTP/1.1 204 
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 99
+Vary: Origin
+Vary: Access-Control-Request-Method
+Vary: Access-Control-Request-Headers
+Allow: GET,POST,PATCH,DELETE,OPTIONS
+Date: Tue, 13 Oct 2026 10:22:28 GMT
+
+
+

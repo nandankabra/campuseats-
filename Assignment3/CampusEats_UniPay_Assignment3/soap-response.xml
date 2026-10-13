@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  SOAP 1.1 success response returned by the external UniPay partner for the
+  charge operation. Design-time sample only; conforms to partner.wsdl
+  (message: ChargeResponseMessage, element: pay:ChargeResponse).
+-->
+<soapenv:Envelope
+    xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:pay="http://unipay.example.com/payment/v1">
+
+  <soapenv:Body>
+    <pay:ChargeResponse>
+      <pay:transactionId>UP20260819001</pay:transactionId>
+      <pay:status>APPROVED</pay:status>
+    </pay:ChargeResponse>
+  </soapenv:Body>
+
+</soapenv:Envelope>
