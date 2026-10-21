@@ -67,14 +67,25 @@ campuseats-/
 │   ├── pom.xml
 │   └── src/
 
-└── Assignment6/
-    ├── CS543_A06.pdf
-    ├── NOTES.md
-    ├── openapi.yaml
-    ├── transcript.txt
-    ├── pom.xml
-    ├── CampusEats_Assignment6_Group8.zip
-    └── src/
+├── Assignment6/
+│   ├── CS543_A06.pdf
+│   ├── NOTES.md
+│   ├── openapi.yaml
+│   ├── transcript.txt
+│   ├── pom.xml
+│   ├── CampusEats_Assignment6_Group8.zip
+│   └── src/
+
+└── Assignment7/
+    ├── CS543_T07.pdf
+    ├── schema.sql
+    ├── db.js
+    ├── server.js
+    ├── package.json
+    ├── README.md
+    └── public/
+        ├── index.html
+        └── style.css
 ```
 
 ---
@@ -89,6 +100,7 @@ campuseats-/
 | 4 | Assignment 4 | RESTful Order Service, Spring Boot API, OpenAPI |
 | 5 | Assignment 5 | HTTP Methods, Headers, Authentication, ETag, Caching, Idempotency |
 | 6 | Assignment 6 | Honest Responses, Status Codes, RFC 7807 Problem Details, Error Catalogues, Validation & Content Negotiation |
+| 7 | Assignment 7 | GraphQL (Node.js + Apollo Server + MySQL), Queries, Mutations, Relationships |
 
 ---
 
@@ -97,6 +109,9 @@ campuseats-/
 - Java 21
 - Spring Boot
 - Maven
+- Node.js & Apollo Server v4
+- GraphQL
+- MySQL
 - REST APIs
 - SOAP Web Services
 - OpenAPI 3.0

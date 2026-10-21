@@ -1,0 +1,24 @@
+{
+  "name": "campus-library",
+  "version": "1.0.0",
+  "description": "Campus Library - Hands-On GraphQL Tutorial (Node.js + Apollo Server + MySQL)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": [
+    "graphql",
+    "apollo-server",
+    "mysql",
+    "node"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@apollo/server": "^4.11.0",
+    "dotenv": "^16.4.5",
+    "graphql": "^16.9.0",
+    "mysql2": "^3.11.3"
+  }
+}
