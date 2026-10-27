@@ -1,185 +1,106 @@
-# Campus Library · Hands-On GraphQL Tutorial
+# CS543 Assignment 7 - CampusEats Menu Service
 
-This project implements **Assignment 7 / Hands-on Tutorial 07 (CS543 - Web Services)**: an end-to-end web application using **HTML/CSS/JS**, a **GraphQL API (Node.js + Apollo Server)**, and a **MySQL** database.
+**Group 8**
 
----
+**How to run:** From `lab/Assignment7`, configure `.env` using `.env.example`, run `mysql -u root -p < schema.sql`, run `npm install && npm start`, then open `public/index.html` with VS Code Live Server.
 
-## 🏛️ Architecture
+## Team members
 
-```text
-Browser (Front-End)           GraphQL API (Node + Apollo)            MySQL (Database)
-HTML + CSS + fetch()   ────►  Apollo Server v4 (:4000)        ────►  gqldemo
-                              - Schemas & Types                      - authors table
-                              - Query & Mutation Resolvers           - books table
+| Name | Roll number |
+| --- | --- |
+| Priya | 20251651073 |
+| Nandan Kabra | 20251651060 |
+| Neeraj Sharma | 20251651063 |
+| Abhinav Gupta | 20251651002 |
+
+## Repository and local demonstration files
+
+- **GitHub repository:** [nandankabra/campuseats-](https://github.com/nandankabra/campuseats-), folder `Assignment7`.
+- **Local demonstration video:** [assets/demonstration.mp4](assets/demonstration.mp4).
+- **Local screenshots:** [Before the mutation](assets/before.png) and [after the mutation](assets/after.png).
+
+The video and both screenshots are stored locally in this assignment's `assets/` folder. The repository URL comes from this project's configured Git remote. The updated assignment files are local and still need to be committed and pushed before submitting one repository link per team through Google Classroom.
+
+## Deliverables
+
+| Requirement | File |
+| --- | --- |
+| Object type, Query, Mutation, and mutation input | [schema.graphql](schema.graphql) |
+| Apollo Server and SQL resolvers | [server.js](server.js) |
+| MySQL connection pool | [db.js](db.js) |
+| One table and four seed rows | [schema.sql](schema.sql) |
+| Page that reads and adds dishes through GraphQL | [public/index.html](public/index.html) |
+| Page styling | [public/style.css](public/style.css) |
+| Database configuration template | [.env.example](.env.example) |
+| Screenshot before the mutation | [assets/before.png](assets/before.png) |
+| Screenshot after the mutation | [assets/after.png](assets/after.png) |
+| Demonstration video | [assets/demonstration.mp4](assets/demonstration.mp4) |
+
+The 48-second video shows actual VS Code screens for `schema.graphql`, `server.js`, `db.js`, `schema.sql`, and `public/index.html`, followed by the initial menu, entering Paneer Roll and its price, the successful mutation, and the menu after refresh. Captions show the GraphQL API port **4007**, web page port **5500**, and MySQL port **3306**. It is a silent step-by-step capture video rather than a continuous screen recording.
+
+## Run details
+
+- Tested with Node.js 22 and a local MySQL Server.
+- Set your MySQL credentials in `.env`; use database `campuseats_a07` and API port `4007` as shown in `.env.example`.
+- `schema.sql` creates one `dishes` table and seeds Veg Sandwich, Masala Dosa, Veg Biryani, and Lemonade only when the table is empty.
+- API and Apollo Sandbox: [http://localhost:4007/](http://localhost:4007/).
+- With the parent `webservices` folder open in VS Code, the Live Server page is normally [http://127.0.0.1:5500/lab/Assignment7/public/index.html](http://127.0.0.1:5500/lab/Assignment7/public/index.html).
+- Keep the API running while using the page. If you change its port, update `API` in `public/index.html` to match. Port 4007 lets this assignment run alongside the tutorial on port 4000.
+
+## Answers required by the assignment
+
+### 1. Which CampusEats service did you pick?
+
+The **Menu service**. One `Dish` object maps to the `dishes` table with `id`, `name`, `price`, and `available` columns.
+
+### 2. Name one field a client can skip and one it cannot. Why use `!`?
+
+A client can skip `available` when selecting query results, for example:
+
+```graphql
+query { dishes { id name price } }
 ```
 
-1. **Frontend**: Sends GraphQL queries and mutations via standard HTTP `POST` requests (`fetch()`).
-2. **GraphQL API**: Resolves queries and nested relationships without over-fetching or under-fetching.
-3. **MySQL**: Relational storage linking authors and books via foreign keys.
+For mutation input, it cannot skip `name` or `price`: they are declared as `String!` and `Float!`, without defaults. GraphQL rejects the mutation if either is omitted or null. Input `available` can be omitted because it defaults to `true`.
 
----
+`!` means **non-null**. On output fields, it guarantees a non-null result when the field is selected; it does not force the client to select that field. On input fields without defaults, it requires the client to provide a non-null value.
 
-## 📂 Project Structure
+### 3. Which part of your query became WHERE, and which resolver ran INSERT?
 
-```text
-Assignment7/
-├── CS543_T07.pdf        # Tutorial specification document
-├── schema.sql           # Database schema & sample seed data
-├── db.js                # MySQL connection pool configuration
-├── server.js            # GraphQL schema (typeDefs) and resolvers
-├── package.json         # Node.js dependencies and scripts
-├── .env.example         # Environment variables template
-├── public/
-│   ├── index.html       # Web interface (authors list & add book form)
-│   └── style.css        # Card & form styling
-└── README.md            # Setup and execution documentation
+For this query:
+
+```graphql
+query { dish(id: "1") { id name price available } }
 ```
 
----
-
-## 🚀 Setup & Execution Guide
-
-### Step 1: Initialize the MySQL Database
-
-Ensure your MySQL server is running. Log in to MySQL and execute the `schema.sql` script:
-
-```bash
-mysql -u root -p < schema.sql
-```
-
-Or within the MySQL CLI:
+`Query.dish` binds the `id` argument to the `?` in:
 
 ```sql
-SOURCE schema.sql;
-SHOW TABLES;
-SELECT * FROM authors;
-SELECT * FROM books;
+SELECT * FROM dishes WHERE id = ?;
 ```
 
-This creates:
-- Database: `gqldemo`
-- Table `authors`: `id`, `name`, `country`
-- Table `books`: `id`, `title`, `year`, `author_id` (foreign key to `authors.id`)
-- Initial seed records for *Asha Patel* and *Ravi Kumar*.
+The list query `dishes` uses `SELECT * FROM dishes ORDER BY id` and has no `WHERE` clause. GraphQL field selection controls the response fields, not the SQL `WHERE` condition.
 
----
+This mutation calls the `Mutation.addDish` resolver:
 
-### Step 2: Configure Environment Variables
-
-Create your `.env` file from the provided template:
-
-```bash
-cp .env.example .env
-```
-
-Edit `.env` to match your local MySQL credentials:
-
-```env
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=YOUR_MYSQL_PASSWORD
-DB_NAME=gqldemo
-PORT=4000
-```
-
----
-
-### Step 3: Install Dependencies
-
-```bash
-npm install
-```
-
-Installed packages:
-- `@apollo/server`: Apollo Server v4 standalone GraphQL server
-- `graphql`: Core GraphQL query language execution engine
-- `mysql2`: MySQL client supporting Promises and connection pooling
-- `dotenv`: Loads environment configurations
-
----
-
-### Step 4: Start the GraphQL Server
-
-```bash
-npm start
-```
-
-Or for automatic reloads during development:
-
-```bash
-npm run dev
-```
-
-You will see:
-```text
-GraphQL API ready at http://localhost:4000/
-```
-
----
-
-## 🔍 Testing with Apollo Sandbox
-
-Open [http://localhost:4000/](http://localhost:4000/) in your web browser. Apollo Server provides an embedded **Apollo Sandbox** query explorer.
-
-### 1. Fetch Authors with Nested Books (Query)
 ```graphql
-query GetAllAuthorsAndBooks {
-  authors {
-    id
-    name
-    country
-    books {
-      id
-      title
-      year
-    }
+mutation {
+  addDish(input: { name: "Paneer Roll", price: 90 }) {
+    id name price
   }
 }
 ```
 
-### 2. Add a New Book (Mutation)
-```graphql
-mutation CreateBook {
-  addBook(title: "GraphQL in Practice", year: 2025, authorId: "1") {
-    id
-    title
-    year
-    author {
-      id
-      name
-    }
-  }
-}
+The resolver executes:
+
+```sql
+INSERT INTO dishes (name, price, available) VALUES (?, ?, ?);
 ```
 
-### 3. Filter Books by Year (Query)
-```graphql
-query FilterBooksByYear {
-  books(year: 2025) {
-    id
-    title
-    year
-    author {
-      name
-    }
-  }
-}
-```
+It then selects the new row using `result.insertId` and returns it. Each successful mutation inserts a new record.
 
-### 4. Delete a Book (Mutation)
-```graphql
-mutation RemoveBook {
-  deleteBook(id: "3")
-}
-```
+## Verification
 
----
+Verified against the running API and MySQL: dish listing, lookup by ID, missing ID, required inputs, default availability, and adding Paneer Roll through the page. The record remains after refresh, as shown in the screenshots and video.
 
-## 🌐 Running the Web Application
-
-With `server.js` running:
-
-1. Open `public/index.html` in your browser, or use the **VS Code Live Server** extension (right-click `public/index.html` → **Open with Live Server** at `http://127.0.0.1:5500`).
-2. The page fetches all authors and nested books in a single request.
-3. Submitting the "Add a book" form executes the GraphQL mutation and immediately refreshes the displayed list.
+The existing `Assignment7_Report.pdf`, `create_report_pdf.py`, and `assets/screen_*` files belong to the earlier Books and Authors tutorial. Use the CampusEats deliverables listed above for this assignment.

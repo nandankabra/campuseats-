@@ -3,117 +3,105 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Campus Library</title>
+  <title>CampusEats Menu</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Campus Library</h1>
-  <p class="sub">Authors and their books &mdash; data served by GraphQL</p>
-
-  <div id="list">Loading&hellip;</div>
+  <h1>CampusEats Menu</h1>
+  <p class="sub">Dishes served by GraphQL and stored in MySQL</p>
+  <div id="list" aria-live="polite">Loading&hellip;</div>
 
   <form id="addForm">
-    <h3>Add a book</h3>
+    <h2>Add a dish</h2>
     <div class="form-row">
-      <input id="title" placeholder="Book title" required>
-      <input id="year" type="number" placeholder="Year">
-      <select id="authorId">
-        <option value="1">Asha Patel</option>
-        <option value="2">Ravi Kumar</option>
-      </select>
-      <button type="submit" class="btn-primary">Add book</button>
+      <label for="name">Dish name
+        <input id="name" name="name" placeholder="Dish name" maxlength="100" required>
+      </label>
+      <label for="price">Price (INR)
+        <input id="price" name="price" type="number" placeholder="Price" min="0" max="99999999.99" step="0.01" required>
+      </label>
+      <label class="availability" for="available">
+        <input id="available" name="available" type="checkbox" checked> Available
+      </label>
+      <button type="submit">Add dish</button>
     </div>
+    <p id="status" role="status"></p>
   </form>
 
   <script>
-    const API = 'http://localhost:4000/';
+    const API = 'http://localhost:4007/';
+    const list = document.getElementById('list');
+    const status = document.getElementById('status');
+    const form = document.getElementById('addForm');
 
-    // helper: send a GraphQL query/mutation to the API
     async function gql(query, variables) {
-      try {
-        const res = await fetch(API, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query, variables }),
-        });
-        const json = await res.json();
-        if (json.errors) {
-          console.error('GraphQL errors:', json.errors);
-          alert('Error: ' + json.errors.map(e => e.message).join('\n'));
-        }
-        return json.data;
-      } catch (err) {
-        console.error('Fetch error:', err);
-        document.getElementById('list').innerHTML = `
-          <div style="background:#feece7; color:#e8541e; padding:1rem; border-radius:8px; border:1px solid #f9c7b8;">
-            <strong>Unable to connect to GraphQL API at ${API}</strong><br>
-            Please make sure <code>node server.js</code> is running on port 4000.
-          </div>
-        `;
-        return null;
+      const response = await fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, variables }),
+      });
+      const result = await response.json();
+      if (!response.ok || result.errors) {
+        throw new Error(result.errors?.map(error => error.message).join('; ') || 'Request failed.');
       }
+      return result.data;
     }
 
-    // 1. READ: load all authors with their books
     async function load() {
-      const data = await gql(`{ authors { id name country books { id title year } } }`);
-      if (!data || !data.authors) return;
-
-      // Update author select options dynamically
-      const authorSelect = document.getElementById('authorId');
-      if (data.authors.length > 0) {
-        authorSelect.innerHTML = data.authors.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+      const data = await gql('{ dishes { id name price available } }');
+      list.replaceChildren();
+      for (const dish of data.dishes) {
+        const card = document.createElement('div');
+        card.className = 'dish-card';
+        const heading = document.createElement('h2');
+        heading.textContent = dish.name;
+        const price = document.createElement('p');
+        price.className = 'price';
+        price.textContent = new Intl.NumberFormat('en-IN', {
+          style: 'currency', currency: 'INR',
+        }).format(dish.price);
+        const availability = document.createElement('p');
+        availability.className = 'dish-availability';
+        availability.textContent = dish.available ? 'Available' : 'Unavailable';
+        card.append(heading, price, availability);
+        list.append(card);
       }
-
-      // Render author cards
-      document.getElementById('list').innerHTML = data.authors.map(a => `
-        <div class="author-card">
-          <h2>${a.name}</h2>
-          <div class="country">${a.country || ''}</div>
-          ${a.books && a.books.length > 0
-            ? a.books.map(b => `
-                <div class="book">
-                  <span>${b.title} <span class="yr">(${b.year || 'N/A'})</span></span>
-                  <button class="del-btn" title="Delete book" onclick="deleteBookItem('${b.id}')">&times;</button>
-                </div>
-              `).join('')
-            : '<div style="color:#888; font-size:0.88rem; font-style:italic;">No books listed</div>'
-          }
-        </div>
-      `).join('');
+      if (!data.dishes.length) list.textContent = 'No dishes yet.';
     }
 
-    // 2. WRITE: add a book, then reload the list
-    document.getElementById('addForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const title = document.getElementById('title').value.trim();
-      const yearVal = document.getElementById('year').value;
-      const year = yearVal ? Number(yearVal) : null;
-      const authorId = document.getElementById('authorId').value;
-
-      if (!title || !authorId) return;
-
-      const data = await gql(
-        `mutation($t:String!,$y:Int,$a:ID!){ addBook(title:$t, year:$y, authorId:$a){ id } }`,
-        { t: title, y: year, a: authorId }
-      );
-
-      if (data && data.addBook) {
-        e.target.reset();
-        load();
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const button = form.querySelector('button');
+      const input = {
+        name: document.getElementById('name').value,
+        price: Number(document.getElementById('price').value),
+        available: document.getElementById('available').checked,
+      };
+      button.disabled = true;
+      status.textContent = 'Saving...';
+      try {
+        const data = await gql(
+          'mutation($input: AddDishInput!) { addDish(input: $input) { id name price available } }',
+          { input }
+        );
+        form.reset();
+        // The INSERT succeeded; a failed refresh must not suggest retrying it.
+        status.textContent = `Added ${data.addDish.name}.`;
+        try {
+          await load();
+        } catch (error) {
+          status.textContent += ` Refresh the page to reload the menu: ${error.message}`;
+        }
+      } catch (error) {
+        status.textContent = `Could not add dish: ${error.message}`;
+      } finally {
+        button.disabled = false;
       }
     });
 
-    // Optional: Delete book
-    async function deleteBookItem(id) {
-      if (!confirm('Are you sure you want to remove this book?')) return;
-      const data = await gql(`mutation($id: ID!) { deleteBook(id: $id) }`, { id });
-      if (data && data.deleteBook) {
-        load();
-      }
-    }
-
-    load();
+    load().catch(error => {
+      list.textContent = `Could not load the menu. Check the API at ${API} (${error.message})`;
+    });
   </script>
 </body>
 </html>

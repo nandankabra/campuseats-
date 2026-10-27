@@ -1,7 +1,7 @@
 {
-  "name": "campus-library",
+  "name": "campuseats-assignment7",
   "version": "1.0.0",
-  "description": "Campus Library - Hands-On GraphQL Tutorial (Node.js + Apollo Server + MySQL)",
+  "description": "CS543 Assignment 7: CampusEats Menu service using GraphQL and MySQL",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
